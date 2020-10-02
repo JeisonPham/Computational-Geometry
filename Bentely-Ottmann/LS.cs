@@ -3,15 +3,16 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Configuration;
 using System.Linq;
+using Computational_Geometry.Graph_DataStructures;
 using Wintellect.PowerCollections;
 
 namespace Computational_Geometry.LineSegmentation
 {
     public static class Ls
     {
-        public static List<Point> Sweep(List<Segment> segments, bool debug = false)
+        public static List<Vector> Sweep(List<Segment> segments, bool debug = false)
         {
-        //     OrderedDictionary<Point, Event> Q = new OrderedDictionary<Point, Event>();
+        //     OrderedDictionary<Vector, Event> Q = new OrderedDictionary<Vector, Event>();
         //     foreach (var s in segments)
         //     {
         //         if (Q.ContainsKey(s.Start))
@@ -33,10 +34,10 @@ namespace Computational_Geometry.LineSegmentation
         //         }
         //     }
         //     List<Segment> T = new List<Segment>();
-        //     List<Point> intersection = new List<Point>();
+        //     List<Vector> intersection = new List<Vector>();
         //     while (Q.Count > 0)
         //     {
-        //         Point p = Q.Keys.First();
+        //         Vector p = Q.Keys.First();
         //         Event e = Q[p];
         //         Q.Remove(p);
         //
@@ -67,7 +68,7 @@ namespace Computational_Geometry.LineSegmentation
         //             Segment bRight = NearestRight(p, T);
         //             if (!(bLeft is null) && !(bRight is null))
         //             {
-        //                 Point i = FindNextEvent(bLeft, bRight, p, ref Q);
+        //                 Vector i = FindNextEvent(bLeft, bRight, p, ref Q);
         //                 if (debug)
         //                 {
         //                     Console.WriteLine("Event: " + p);
@@ -94,7 +95,7 @@ namespace Computational_Geometry.LineSegmentation
         //             Segment bLeft = NearestLeft(sLeft, tTemp);
         //             Segment bRight = NearestRight(sRight, tTemp);
         //
-        //             Point i = null, j = null;
+        //             Vector i = null, j = null;
         //             if (!(bRight is null))
         //             {
         //                 i = FindNextEvent(bRight, sRight, p, ref Q);
@@ -120,7 +121,7 @@ namespace Computational_Geometry.LineSegmentation
         //     return intersection;
         //
         // }
-            SortedDictionary<Point, Event> Q = new SortedDictionary<Point, Event>(new EC());
+            SortedDictionary<Vector, Event> Q = new SortedDictionary<Vector, Event>(new EC());
             foreach (var segment in segments)
             {
                 if (Q.ContainsKey(segment.Start))
@@ -133,10 +134,10 @@ namespace Computational_Geometry.LineSegmentation
             
             // List<Segment> T = new List<Segment>();
             SortedSet<Segment> T = new SortedSet<Segment>();
-            List<Point> inter = new List<Point>();
+            List<Vector> inter = new List<Vector>();
             while (Q.Count > 0)
             {
-                Point p = Q.Keys.First();
+                Vector p = Q.Keys.First();
                 Event e = Q[p];
                 Q.Remove(p);
                 
@@ -146,7 +147,7 @@ namespace Computational_Geometry.LineSegmentation
                 foreach (var segment in T)
                 {
                     if (segment.End == p) lower.Add(segment);
-                    else if(segment.IsInSegment(p) && segment.Start != p) contain.Add(segment);
+                    else if(segment.IsPointInSegment(p) && segment.Start != p) contain.Add(segment);
                 }
             
                 if (e.segments.Count + lower.Count + contain.Count > 1)
@@ -167,7 +168,7 @@ namespace Computational_Geometry.LineSegmentation
                 {
                     Segment sl = NearestLeft(p, T);
                     Segment sr = NearestRight(p, T);
-                    Point i = FindNewEvent(sl, sr, p, ref Q);
+                    Vector i = FindNewEvent(sl, sr, p, ref Q);
                     if (debug)
                     {
                         Console.WriteLine("Event: " + p);
@@ -190,8 +191,8 @@ namespace Computational_Geometry.LineSegmentation
                     Segment sl = NearestLeft(sP, T);
                     Segment sr = NearestRight(sPP, T);
             
-                    Point i = FindNewEvent(sP, sl, p, ref Q);
-                    Point j = FindNewEvent(sPP, sr, p, ref Q);
+                    Vector i = FindNewEvent(sP, sl, p, ref Q);
+                    Vector j = FindNewEvent(sPP, sr, p, ref Q);
                     
                     if (debug)
                     {
@@ -207,15 +208,14 @@ namespace Computational_Geometry.LineSegmentation
             return inter;
         }
 
-        private static Point FindNewEvent(Segment sl, Segment sr, Point point, ref SortedDictionary<Point, Event> sortedDictionary)
+        private static Vector FindNewEvent(Segment sl, Segment sr, Vector point, ref SortedDictionary<Vector, Event> sortedDictionary)
         {
             if (!(sl is null) && !(sr is null))
             {
-                Point intersection = sl.Intersect(sr);
+                Vector intersection = sl.Intersection(sr);
                 if (!(intersection is null) &&
                     (intersection.y < point.y || intersection.y == point.y && intersection.x > point.x))
                 {
-                    intersection.Label = "x" + Math.Min(sl.num, sr.num) + "" + Math.Max(sl.num, sr.num);
                     if(!sortedDictionary.ContainsKey(intersection))
                         sortedDictionary[intersection] = new Event();
                     return intersection;
@@ -225,7 +225,7 @@ namespace Computational_Geometry.LineSegmentation
             return null;
         }
 
-        private static SortedSet<Segment> FixDistances(Point p, SortedSet<Segment> T)
+        private static SortedSet<Segment> FixDistances(Vector p, SortedSet<Segment> T)
         {
             SegComp seg = new SegComp();
             seg.P = p;
@@ -234,9 +234,9 @@ namespace Computational_Geometry.LineSegmentation
             return temp;
         }
 
-        // private static Point FindNextEvent(Segment bLeft, Segment bRight, Point point, ref OrderedDictionary<Point, Event> orderedDictionary)
+        // private static Vector FindNextEvent(Segment bLeft, Segment bRight, Vector point, ref OrderedDictionary<Vector, Event> orderedDictionary)
         // {
-        //     Point intersection = bLeft.Intersect(bRight);
+        //     Vector intersection = bLeft.Intersect(bRight);
         //     if (!(intersection is null) && (intersection.y < point.y ||
         //         intersection.y == point.y && intersection.x > point.x))
         //     {
@@ -300,15 +300,15 @@ namespace Computational_Geometry.LineSegmentation
             return null;
         }
 
-        public static Segment NearestLeft(Point p, IEnumerable<Segment> T)
+        public static Segment NearestLeft(Vector p, IEnumerable<Segment> T)
         {
             Segment minDistance = null;
             float min = float.MaxValue;
             foreach (var s in T)
             {
-                if (min > Math.Abs(s.Distance(p)) && s.Distance(p) >= 0)
+                if (min > Math.Abs(s.DistanceToPoint(p)) && s.DistanceToPoint(p) >= 0)
                 {
-                    min = Math.Abs(s.Distance(p));
+                    min = Math.Abs(s.DistanceToPoint(p));
                     minDistance = s;
                 }
             }
@@ -318,15 +318,15 @@ namespace Computational_Geometry.LineSegmentation
         
         
 
-        public static Segment NearestRight(Point p, IEnumerable<Segment> T)
+        public static Segment NearestRight(Vector p, IEnumerable<Segment> T)
         {
             Segment minDistance = null;
             float min = float.MaxValue;
             foreach (var s in T)
             {
-                if (min > Math.Abs(s.Distance(p)) && s.Distance(p) <= 0)
+                if (min > Math.Abs(s.DistanceToPoint(p)) && s.DistanceToPoint(p) <= 0)
                 {
-                    min = Math.Abs(s.Distance(p));
+                    min = Math.Abs(s.DistanceToPoint(p));
                     minDistance = s;
                 }
             }
@@ -334,7 +334,7 @@ namespace Computational_Geometry.LineSegmentation
             return minDistance;
         }
 
-        private static void DebugEventQueue(OrderedDictionary<Point, Event> Q)
+        private static void DebugEventQueue(OrderedDictionary<Vector, Event> Q)
         {
             Console.WriteLine("Event Queue");
             foreach (var e in Q)
@@ -344,7 +344,7 @@ namespace Computational_Geometry.LineSegmentation
 
             Console.WriteLine();
         }
-        private static void DebugEventQueue(SortedDictionary<Point, Event> Q)
+        private static void DebugEventQueue(SortedDictionary<Vector, Event> Q)
         {
             Console.WriteLine("Event Queue");
             foreach (var e in Q)
@@ -366,7 +366,7 @@ namespace Computational_Geometry.LineSegmentation
             Console.WriteLine();
         }
 
-        private static void DebugIntersection(Segment bRight, Segment bLeft, Point p)
+        private static void DebugIntersection(Segment bRight, Segment bLeft, Vector p)
         {
             Console.WriteLine("Testing Intesection for " + bLeft + " " + bRight + " = " + p);
         }

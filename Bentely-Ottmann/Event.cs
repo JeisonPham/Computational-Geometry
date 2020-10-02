@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Computational_Geometry.Graph_DataStructures;
 
 namespace Computational_Geometry.LineSegmentation
 {
@@ -51,11 +52,11 @@ namespace Computational_Geometry.LineSegmentation
 
     // public class Event
     // {
-    //     public Point Pt;
+    //     public Vector Pt;
     //     public Segment S;
     //     public int type;
     //
-    //     public Event(Point p, Segment s, int type = -1)
+    //     public Event(Vector p, Segment s, int type = -1)
     //     {
     //         this.Pt = p;
     //         this.S = s;
@@ -78,9 +79,9 @@ namespace Computational_Geometry.LineSegmentation
         }
     }
 
-    public class EC : IComparer<Point>
+    public class EC : IComparer<Vector>
     {
-        public int Compare(Point x, Point y)
+        public int Compare(Vector x, Vector y)
         {
             if (x == y) return 0;
             if (x.y > y.y || x.y == y.y && x.x < y.x) return -1;
@@ -90,7 +91,7 @@ namespace Computational_Geometry.LineSegmentation
 
     public class SegComp : IComparer<Segment>
     {
-        public Point P { get; set; }
+        public Vector P { get; set; }
         public int Compare(Segment x, Segment y)
         {
             if (x.Start == y.Start && x.End == y.End) return 0;
@@ -104,7 +105,7 @@ namespace Computational_Geometry.LineSegmentation
     //
     //     public int Compare(Event x, Event y)
     //     {
-    //         Point p1 = x.Pt, p2 = y.Pt;
+    //         Vector p1 = x.Pt, p2 = y.Pt;
     //         if (p1.y > p2.y || p1.y == p2.y && p1.x < p2.x) return -1;
     //         return 1;
     //     }
